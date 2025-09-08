@@ -27,18 +27,19 @@ vpairo.vv vd, vs2, vs1, vm  # vd[i] = (i % 2) == 0 ? vs2[i + 1] : vs1[i + 0]
 vpairo may read one element past VL in vs2 if VL is odd.
 ====
 
-=== Vector Pair Instructions
+=== Vector Pack Instructions
 
-The vector pair instruction pair VL elements taken from each source vector
-register group, into the destination vector register group.  This instruction
-operates with an effective vector length of 2*VL and is reserved when LMUL is 8.
+The vector pack instruction packs element at a given index in each source
+vector register group, into a pair of elements in destination vector register
+group. This instruction operates with an effective vector length of 2*VL and
+is reserved when LMUL is 8.
 
 The destination register cannot overlap the source registers and, if masked,
 cannot overlap the mask register.
 
 ----
 vpair.vv vd, vs2, vs1, vm   # for i in 0 to 2*VL
-                            #   vd[i] = (i % 2 == 0) ? vs2[i] : vs1[i]
+                            #   vd[i] = (i % 2 == 0) ? vs2[i/2] : vs1[i/2]
 ----
 
 === Vector Unpack Even and Unpack Odd Instructions
