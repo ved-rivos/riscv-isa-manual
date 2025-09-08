@@ -1,84 +1,61 @@
-== "Zvzip" Extension for Reordering Structured Data, Version 0.1
+== "Zvpair" Extension for Reordering Structured Data, Version 0.1
 
-This chapter describes the Zvzip standard extension for reordering structured
+This chapter describes the Zvpair standard extension for reordering structured
 data in vector registers. These instruction address usages such as packing and
 unpacking data structures such as color components of a pixel, real and
 imaginary components of complex numbers, transposing small matrices, among
 others.
 
-=== Vector Zip Even and Zip Odd Instructions
+=== Vector Pair Even and Pair Odd Instructions
 
-The vector zip-even instruction interleaves the even-indexed elements of the
+The vector pair-even instruction interleaves the even-indexed elements of the
 source vector register groups into the destination vector register group.
 
-The vector zip-odd instruction interleaves the odd-indexed elements of the
+The vector pair-odd instruction interleaves the odd-indexed elements of the
 source vector register groups into the destination vector register group.
 
 The destination register cannot overlap the source registers and, if masked,
 cannot overlap the mask register.
 
 ----
-vzipeven.vv vd, vs2, vs1, vm  # vd[i] = (i % 2) == 0 ? vs2[i + 0] : vs1[i - 1]
-vzipodd.vv vd, vs2, vs1, vm   # vd[i] = (i % 2) == 0 ? vs2[i + 1] : vs1[i + 0]
+vpaire.vv vd, vs2, vs1, vm  # vd[i] = (i % 2) == 0 ? vs2[i + 0] : vs1[i - 1]
+vpairo.vv vd, vs2, vs1, vm  # vd[i] = (i % 2) == 0 ? vs2[i + 1] : vs1[i + 0]
 ----
 
 [NOTE]
 ====
-vzipodd may read one element past VL in vs2 if VL is odd.
+vpairo may read one element past VL in vs2 if VL is odd.
 ====
 
-=== Vector Unzip Even and Unzip Odd Instructions
+=== Vector Pair Instructions
 
-The vector unzip-even instruction extracts the first ceil(VLMAX/2) even-indexed
-elements from vs2 and concatenates them with the first floor(VLMAX/2)
-even-indexed elements from vs1; the first VL elements of this concatenated
-stream are written to the destination vector register group in order.
-
-The vector unzip-odd instruction extracts the first floor(VLMAX/2) odd-indexed
-elements from vs2 and concatenates them with the first ceil(VLMAX/2) odd-indexed
-elements from vs1; the first VL elements of this concatenated stream are written
-to the destination vector register group in order.
+The vector pair instruction pair VL elements taken from each source vector
+register group, into the destination vector register group.  This instruction
+operates with an effective vector length of 2*VL and is reserved when LMUL is 8.
 
 The destination register cannot overlap the source registers and, if masked,
 cannot overlap the mask register.
 
 ----
-vunzipeven.vv vd, vs2, vs1, vm  # vd[i] = (i < (VLMAX+1)/2) ? vs2[(2 * i) % VLMAX] :
-                                #                             vs1[(2 * i) % VLMAX]
-vunzipodd.vv  vd, vs2, vs1, vm  # vd[i] = (i < VLMAX/2) ? vs2[((2 * i) + 1) % VLMAX] :
-                                #                         vs1[((2 * i) + 1) % VLMAX]
+vpair.vv vd, vs2, vs1, vm   # for i in 0 to 2*VL
+                            #   vd[i] = (i % 2 == 0) ? vs2[i] : vs1[i]
 ----
 
-[NOTE]
-====
-Because concatenation is VLMAX-based, implementations may read elements past VL
-in the source vector register groups (analogous to vrgather).
-====
+=== Vector Unpack Even and Unpack Odd Instructions
 
-=== Vector Zip Low and Zip High Instructions
+The vector unpack-even instruction unpack the VL number of even-indexed elements
+from the source vector register group into the destination vector register group.
 
-The vector zip-low instruction interleaves ceil(VL/2) elements taken from the
-low half of each source vector register group, into the destination vector
-register group.
+The vector unpack-odd instruction unpack the VL number of odd-indexed elements
+from the source vector register group into the destination vector register group.
 
-The vector zip-high instruction interleaves ceil(VL/2) elements from the high
-half of each source vector register group, starting at VLMAX/2, into the
-destination vector register group.
+These instructions access 2*VL number of elements in the source vector register
+group and are reserved when LMUL is 8.
 
 The destination register cannot overlap the source registers and, if masked,
 cannot overlap the mask register.
 
 ----
-vziplo.vv vd, vs2, vs1, vm   # vd[i] = (i % 2 == 0) ? vs2[floor(i/2)] :
-                             #                        vs1[floor(i/2)]
-vziphi.vv vd, vs2, vs1, vm   # vd[i] = ((i + VLMAX) % 2 == 0) ? vs2[floor(i/2) + (VLMAX/2)] :
-                             #                                  vs1[floor(i/2) + (VLMAX/2)]
+vunpacke.vv vd, vs2, vs1, vm  # vd[i] = vs1[(2 * i)]
+vunpacko.vv vd, vs2, vs1, vm  # vd[i] = vs1[((2 * i) + 1)]
 ----
-
-[NOTE]
-====
-Analogous to vrgather, vziphi may read past VL in both sources. The vziplo
-instruction reads ceil(VL/2) elements from the source vector register group. The
-vziphi instruction reads floor(VL/2) elements from the source vector register
-group.
-====
