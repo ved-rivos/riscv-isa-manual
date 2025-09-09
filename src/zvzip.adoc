@@ -27,36 +27,36 @@ vpairo.vv vd, vs2, vs1, vm  # vd[i] = (i % 2) == 0 ? vs2[i + 1] : vs1[i + 0]
 vpairo may read one element past VL in vs2 if VL is odd.
 ====
 
-=== Vector Pack Instructions
+=== Vector Interleave Instructions
 
-The vector pack instruction packs element at a given index in each source
-vector register group, into a pair of elements in destination vector register
-group. This instruction operates with an effective vector length of 2*VL and
-is reserved when LMUL is 8.
+The vector interleave instruction interleaves element at a given index in each
+source vector register group, in destination vector register group. This
+instruction operates with an effective vector length of 2*VL. The destination
+EMUL is 2xLMUL. The instruction is reserved when LMUL is 8. 
 
 The destination register cannot overlap the source registers and, if masked,
 cannot overlap the mask register.
 
 ----
-vpair.vv vd, vs2, vs1, vm   # for i in 0 to 2*VL
-                            #   vd[i] = (i % 2 == 0) ? vs2[i/2] : vs1[i/2]
+vintlv.vv vd, vs2, vs1, vm   # for i in 0 to 2*VL
+                             #   vd[i] = (i % 2 == 0) ? vs2[i/2] : vs1[i/2]
 ----
 
-=== Vector Unpack Even and Unpack Odd Instructions
+=== Vector Extract Even and Unpack Odd Instructions
 
-The vector unpack-even instruction unpack the VL number of even-indexed elements
+The vector extract-even instruction extracts the VL number of even-indexed elements
 from the source vector register group into the destination vector register group.
 
-The vector unpack-odd instruction unpack the VL number of odd-indexed elements
+The vector extract-odd instruction extracts the VL number of odd-indexed elements
 from the source vector register group into the destination vector register group.
 
 These instructions access 2*VL number of elements in the source vector register
-group and are reserved when LMUL is 8.
+group and the source EMUL is 2xLMUL. The instruction is reserved when LMUL is 8. 
 
 The destination register cannot overlap the source registers and, if masked,
 cannot overlap the mask register.
 
 ----
-vunpacke.vv vd, vs2, vs1, vm  # vd[i] = vs1[(2 * i)]
-vunpacko.vv vd, vs2, vs1, vm  # vd[i] = vs1[((2 * i) + 1)]
+vextre.vv vd, vs2, vs1, vm  # vd[i] = vs1[(2 * i)]
+vextro.vv vd, vs2, vs1, vm  # vd[i] = vs1[((2 * i) + 1)]
 ----
