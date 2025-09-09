@@ -1,17 +1,17 @@
-== "Zvpair" Extension for Reordering Structured Data, Version 0.1
+== "Zvzip" Extension for Reordering Structured Data, Version 0.1
 
-This chapter describes the Zvpair standard extension for reordering structured
+This chapter describes the Zvzip standard extension for reordering structured
 data in vector registers. These instruction address usages such as packing and
 unpacking data structures such as color components of a pixel, real and
 imaginary components of complex numbers, transposing small matrices, among
 others.
 
-=== Vector Pair Even and Pair Odd Instructions
+=== Vector Zip Even and Zip Odd Instructions
 
-The vector pair-even instruction interleaves the even-indexed elements of the
+The vector zip-even instruction interleaves the even-indexed elements of the
 source vector register groups into the destination vector register group.
 
-The vector pair-odd instruction interleaves the odd-indexed elements of the
+The vector zip-odd instruction interleaves the odd-indexed elements of the
 source vector register groups into the destination vector register group.
 
 The destination register cannot overlap the source registers and, if masked,
@@ -24,12 +24,12 @@ vpairo.vv vd, vs2, vs1, vm  # vd[i] = (i % 2) == 0 ? vs2[i + 1] : vs1[i + 0]
 
 [NOTE]
 ====
-vpairo may read one element past VL in vs2 if VL is odd.
+vzipo may read one element past VL in vs2 if VL is odd.
 ====
 
-=== Vector Interleave Instructions
+=== Vector Zip Instruction
 
-The vector interleave instruction interleaves element at a given index in each
+The vector Zip instruction interleaves element at a given index in each
 source vector register group, in destination vector register group. This
 instruction operates with an effective vector length of 2*VL. The destination
 EMUL is 2xLMUL. The instruction is reserved when LMUL is 8. 
@@ -38,8 +38,8 @@ The destination register cannot overlap the source registers and, if masked,
 cannot overlap the mask register.
 
 ----
-vintlv.vv vd, vs2, vs1, vm   # for i in 0 to 2*VL
-                             #   vd[i] = (i % 2 == 0) ? vs2[i/2] : vs1[i/2]
+vzip.vv vd, vs2, vs1, vm   # for i in 0 to 2*VL
+                           #   vd[i] = (i % 2 == 0) ? vs2[i/2] : vs1[i/2]
 ----
 
 === Vector Extract Even and Unpack Odd Instructions
