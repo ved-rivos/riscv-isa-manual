@@ -18,8 +18,8 @@ The destination register cannot overlap the source registers and, if masked,
 cannot overlap the mask register.
 
 ----
-vpaire.vv vd, vs2, vs1, vm  # vd[i] = (i % 2) == 0 ? vs2[i + 0] : vs1[i - 1]
-vpairo.vv vd, vs2, vs1, vm  # vd[i] = (i % 2) == 0 ? vs2[i + 1] : vs1[i + 0]
+vzipe.vv vd, vs2, vs1, vm  # vd[i] = (i % 2) == 0 ? vs2[i + 0] : vs1[i - 1]
+vzipo.vv vd, vs2, vs1, vm  # vd[i] = (i % 2) == 0 ? vs2[i + 1] : vs1[i + 0]
 ----
 
 [NOTE]
@@ -29,7 +29,7 @@ vzipo may read one element past VL in vs2 if VL is odd.
 
 === Vector Zip Instruction
 
-The vector Zip instruction interleaves element at a given index in each
+The vector zip instruction interleaves element at a given index in each
 source vector register group, in destination vector register group. This
 instruction operates with an effective vector length of 2*VL. The destination
 EMUL is 2xLMUL. The instruction is reserved when LMUL is 8. 
