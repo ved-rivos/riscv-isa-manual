@@ -34,8 +34,9 @@ source vector register group, in destination vector register group. This
 instruction operates with an effective vector length of 2*VL. The destination
 EMUL is 2xLMUL. The instruction is reserved when LMUL is 8. 
 
-The destination register cannot overlap the source registers and, if masked,
-cannot overlap the mask register.
+The destination vector register group can overlap the source vector register
+group if the overlap is in the highest-numbered part of the destination
+register group and the source EMUL is at least 1.
 
 ----
 vzip.vv vd, vs2, vs1, vm   # for i in 0 to 2*VL
@@ -53,8 +54,8 @@ from the source vector register group into the destination vector register group
 These instructions access 2*VL number of elements in the source vector register
 group and the source EMUL is 2xLMUL. The instruction is reserved when LMUL is 8. 
 
-The destination register cannot overlap the source registers and, if masked,
-cannot overlap the mask register.
+The destination vector register group can overlap the source vector register
+group if the overlap is in the lowest-numbered part of the source register group.
 
 ----
 vextre.vv vd, vs2, vs1, vm  # vd[i] = vs1[(2 * i)]
