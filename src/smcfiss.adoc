@@ -1,0 +1,46 @@
+[[smcfiss]]
+== "Smcfiss" Extension for Machine-mode Shadow Stack, Version 0.1
+
+The Smcfiss extension enables the use of a shadow stack to enforce
+backward-edge control-flow integrity in machine mode.
+
+The Smcfiss extension depends on the Zicfiss and Smepmp extensions.
+
+The Zicfiss extension introduces an `MSSE` field in `mseccfg` to enable the use
+of Zicfiss in machine mode. When the Smcfiss extension is implemented, the
+shadow-stack-enabled (SSE) state, denoted by the term `xSSE`, is set to the
+value of `mseccfg.MSSE`.
+
+When `mseccfg.MSSE` is 0, the 32-bit and 16-bit Zicfiss instructions encoded
+using MOPs revert to the behavior defined by Zimop and Zcmop, respectively.
+When `mseccfg.MSSE` is 1, Zicfiss instructions are enabled for use in
+machine mode.
+
+The Smcfiss extension introduces a new WARL field, `SSPMP`, in the
+`mseccfg` register to designate a PMP entry for use as a machine-mode
+shadow stack memory region.
+
+When `mseccfg.MSSE` is 1, the PMP entry identified by `mseccfg.SSPMP`
+represents a machine-mode shadow stack region if
+`pmpcfg[mseccfg.SSPMP].LXWR` is `1010`, regardless of the value in
+`mseccfg.MML`. When `mseccfg.MSSE` is 0, the interpretation of the
+encoding `LXWR=1010` is as specified by the Smepmp extension.
+
+The following additional rules apply to memory accesses when the effective
+privilege mode is M and `mseccfg.MSSE` is 1:
+
+* Shadow stack instructions are restricted to accessing a machine-mode
+  shadow stack region; otherwise, a store/AMO access-fault exception
+  is raised.
+* Attempts by instructions other than shadow stack instructions to
+  store to the machine-mode shadow stack region raise a store/AMO
+  access-fault exception.
+* Implicit accesses, including instruction fetches, to the
+  machine-mode shadow stack region raise an access-fault exception
+  appropriate to the access type.
+* The machine-mode shadow stack region may be read only by instructions
+  that perform loads from memory.
+
+Access to a machine-mode shadow stack region with effective privilege
+mode less than M raises an access-fault exception corresponding to the
+original access type.
