@@ -1,10 +1,30 @@
 [[smcfiss]]
+== "Smpmpind" Extension for Indirect PMP CSR Access, Version 0.1
+
+The Smpmpind extension defines a range of selector values for accessing PMP
+registers using the CSRs provided by the Smcsrind extension. The Smpmpind
+depends on Smcsrind.
+
+For indirect accesses to PMP registers, `miselect` selects the target PMP
+entry, `mireg` accesses its `pmpaddr` register, and `mireg2` accesses its
+`pmpcfg` register. The `mireg3` through `mireg6` are read-only 0.
+
+The `pmpcfg` is a 16-bit configuration field. The low 8 bits of this register
+alias to the 8-bit field of the PMP configuration register that can be accessed
+using direct CSR accesses.
+
+The bit 15 of the `pmpcfg` register is defined as the extended-attriutes (`E`)
+field. WHen `E` field is 1, the `XWR` bits in the `pmpcfg` register are
+interpreted as-if the `Smpmpind` extension was not implemented. When `E` bit is
+1, the `XWR` field is collectively a WARL field and all encodings are reserved
+unless they are defined by another standard extension.
+
 == "Smcfiss" Extension for Machine-mode Shadow Stack, Version 0.1
 
 The Smcfiss extension enables the use of a shadow stack to enforce
 backward-edge control-flow integrity in machine mode.
 
-The Smcfiss extension depends on the Zicfiss extension.
+The Smcfiss extension depends on the Zicfiss and the Smpmpind extensions.
 
 The Smcfiss extension introduces an `MSSE` field in `mseccfg` to enable the use
 of Zicfiss in machine mode. When the Smcfiss extension is implemented, the
@@ -12,51 +32,69 @@ shadow-stack-enabled (SSE) state, denoted by the term `xSSE`, is set to the
 value of `mseccfg.MSSE`.
 
 When `mseccfg.MSSE` is 0, the implementation behaves as if the Smcfiss is not
-implemented. When `mseccfg.MSSE` is 1, Zicfiss instructions are enabled for use
-in machine mode.
+implemented. When Smcfiss is impelemented, Zicfiss instructions are enabled for
+use in machine mode.
 
-The Smcfiss extension introduces a new 6-bit WARL field, `SSPMP`, in the
-`mseccfg` register to designate a PMP entry for use as a machine-mode
-shadow stack memory region.
+When the Smpepmp extension is also implemented, If the `mseccfg.RLB` field is 0
+while `pmpcfg.L` is 1 in any PMP entry, further writes to the `mseccfg.MSSE` field
+are ignored until a PMP reset.
 
-When the Smpepmp extension is implemented and `mseccfg.RLB` is 0 while
-`pmpcfg.L` is 1 in any PMP entry, `mseccfg.SSPMP` becomes locked, and
-further writes to `mseccfg.SSPMP` and `mseccfg.MSSE` are ignored
-until a PMP reset.
+When Smcfiss extension is implemented, a PMP entry configured with `E=1` and
+`XWR=010` denotes a M-mode shadow stack region.
 
-When `mseccfg.MSSE` is 1, the PMP entry identified by `mseccfg.SSPMP`
-designates a machine-mode shadow-stack region if `pmpcfg[SSPMP].LXWR` is
-`1010`. When the Smepmp extension is implemented, this designation applies
-regardless of the value of `mseccfg.MML`. For the PMP entry designated by
-`mseccfg.SSPMP`, all other encodings of the `LXWR` field are reserved for
-future standard use.
+When Smcfiss is implemented, the following additional rules apply to memory
+accesses with effective privilege mode equal to M:
 
-The following additional rules apply to memory accesses when the effective
-privilege mode is M and `mseccfg.MSSE` is 1:
-
-* Shadow stack instructions may only access the machine-mode shadow stack
-  region. Any shadow stack instruction that attempts to access memory
-  outside this region raises a store/AMO access-fault exception.
+* Shadow stack instructions are not permitted to access a memory region
+  that is not a M-mode shadow stack memory region. Any such attempt
+  raises a store/AMO access-fault exception.
 * Instructions other than shadow stack instructions are not permitted to
-  store to the machine-mode shadow stack region. Any such attempt raises a
+  store to the M-mode shadow stack region. Any such attempt raises a
   store/AMO access-fault exception.
-* Implicit accesses, including instruction fetches, to the machine-mode
-  shadow stack region raise an access-fault exception corresponding to the
+* Implicit accesses, including instruction fetches, to the M-mode shadow
+  stack region raise an access-fault exception corresponding to the
   original access type.
-* The machine-mode shadow stack region may be read either by explicit load
+* The M-mode shadow stack region may be read either by explicit load
   instructions or by shadow stack instructions.
 
-Accesses to a machine-mode shadow stack region with effective privilege
-mode less than M raise an access-fault exception corresponding to the
-original access type.
+Accesses to a M-mode shadow stack region with effective privilege mode less
+than M raise an access-fault exception corresponding to the original access
+type.
 
-[NOTE]
-====
-When the Smepmp is implemented, the recommended sequence to clear `mseccfg.MSSE`
-is to first set the `LXWR` field of the PMP entry identified by `SSPMP` to
-`0000`. This ordering avoids the possibility of the memory region being
-temporarily interpreted as an ordinary, shared, and executable region.
-====
+== "Smmucfiss" Extension for M+U user-mode Shadow Stack, Version 0.1
+
+The Smmucfiss extension enables the use of a shadow stack to enforce
+backward-edge control-flow integrity in user mode using PMPs when the S-mode
+is not implemented.
+
+The Smmucfiss extension depends on the Zicfiss and the Smcfiss extensions.
+The use of Smmucfiss extension is not supported when S-mode is implemented.
+
+If `menvcfg.SSE` is 0, the implementation behaves as if Smmucfiss is
+not implemented.
+
+When Smmucfiss is implemented:
+
+* A PMP entry configured with `E=1` and `XWR=110` denotes a U-mode shadow
+  stack region.
+* The shadow-stack-enabled (SSE) state, denoted by the term `xSSE`, is
+  set to the value of `menvcfg.SSE` for U-mode and the use of Zicfiss is
+  enabled in U-mode.
+
+When Smmucfiss is implemented, the following additional rules apply to
+memory accesses with effective privilege mode less than M:
+
+* Shadow stack instructions are not permitted to access a memory region
+  that is not a U-mode shadow stack memory region. Any such attempts
+  raise a store/AMO access-fault exception.
+* Instructions other than shadow stack instructions are not permitted to
+  store to a U-mode shadow stack memory region. Any such attempt raises a
+  store/AMO access-fault exception.
+* Implicit accesses, including instruction fetches, to a U-mode shadow
+  stack memory region raise an access-fault exception corresponding
+  to the original access type.
+* A U-mode shadow stack memory regions may be read either by explicit
+  load instructions or by shadow stack instructions.
 
 == "Sspmpss" Extension for S-level PMP Shadow Stack, Version 0.1
 
@@ -65,19 +103,19 @@ backward-edge control-flow integrity in supervisor and user mode using S-level
 PMPs (SPMP). The Sspmpss extension depends on the Zicfiss and Sspmp extensions.
 
 If `satp.MODE` is not `Bare` or if `menvcfg.SSE` is 0, the implementation
-behaves as if Sspmpss is not implemented.
+behaves as if Sspmpss is not implemented. When Sspmpss is implemented, the
+`XWR=010` encoding in `spmpcfg[i]` register is defined to represent a shadow
+stack memory region.
 
 When Sspmpss is implemented, the following additional rules apply to memory
 accesses with effective privilege mode less than M:
 
-* The `XWR=010` encoding in `spmpcfg[i]` register is defined to represent a
-  shadow stack memory region.
-* Shadow stack instructions may only access the shadow stack regions. Any
-  shadow stack instruction that attempts to access a memory outside that is
-  not a shadow stack memory region raises a store/AMO access-fault exception.
+* Shadow stack instructions are not permitted to access a memory region
+  that is not a shadow stack memory region. Any such attempts raise a store/AMO
+  access-fault exception.
 * Instructions other than shadow stack instructions are not permitted to
-  store to the shadow stack memory regions. Any such attempt raises a
-  store/AMO access-fault exception.
+  store to a shadow stack memory region. Any such attempt raises a store/AMO
+  access-fault exception.
 * Implicit accesses, including instruction fetches, to a shadow stack memory
   region raise an access-fault exception corresponding to the original access
   type.
