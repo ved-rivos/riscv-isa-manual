@@ -15,12 +15,12 @@ For indirect access to PMP registers, `miselect` selects the target PMP
 entry; `mireg` accesses its `pmpaddr` register, and `mireg2` accesses its
 `pmpcfg` register. The `mireg3` through `mireg6` are read-only zero.
 
-The `pmpcfg` is a 16-bit register. The low 8 bits of this register are an
+The `pmpcfg` is a MXLEN wide register. The low 8 bits of this register are an
 alias of the 8-bit field of the PMP configuration register for this entry
 that can be accessed using a direct CSR access. Writes to the `pmpcfg`
 and `pmpaddr` registers of a locked PMP entry are ignored.
 
-Bit 15 of the `pmpcfg` register is defined as the extended-attributes (`E`)
+Bit MXLEN-1 of the `pmpcfg` register is defined as the extended-attributes (`E`)
 field. When the `E` field is 0, the `XWR` bits in the `pmpcfg` register are
 interpreted as if the `Smpmpind` extension were not implemented. When the `E`
 field is 1, the `XWR` bits collectively form a WARL field and all encodings
